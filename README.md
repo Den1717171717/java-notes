@@ -228,3 +228,128 @@ Server 4: D
   }                                                                                                                                                                                                                      
   // Но внешняя транзакция этого не знает
                                                                                                                                                           
+
+
+Thought for a couple of seconds
+
+Да, ты имеешь в виду два основных способа инициализации Singleton:
+
+1. Eager initialization — ранняя / статическая инициализация
+2. Lazy initialization — ленивая / динамическая инициализация
+1. Eager initialization — объект создаётся сразу
+public class Singleton {
+
+    private static final Singleton INSTANCE = new Singleton();
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        return INSTANCE;
+    }
+}
+
+Что происходит:
+
+private static final Singleton INSTANCE = new Singleton();
+
+Объект создаётся сразу при загрузке класса, даже если он пока не нужен.
+
+На собеседовании:
+
+Eager initialization — это когда объект Singleton создаётся заранее, при загрузке класса. Такой вариант простой и thread-safe, потому что JVM гарантирует безопасную инициализацию static-полей. Минус — объект создаётся даже если он ни разу не понадобится.
+
+Плюсы:
+
++ просто
++ thread-safe
++ нет synchronized
+
+Минус:
+
+- объект создаётся заранее
+2. Lazy initialization — объект создаётся только когда нужен
+public class Singleton {
+
+    private static Singleton instance;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+
+        return instance;
+    }
+}
+
+Что происходит:
+
+if (instance == null) {
+    instance = new Singleton();
+}
+
+Объект создаётся только при первом вызове getInstance().
+
+На собеседовании:
+
+Lazy initialization — это когда объект Singleton создаётся не сразу, а только при первом обращении к нему через getInstance(). Плюс — мы не создаём объект, если он не нужен. Минус — простой вариант не является thread-safe.
+
+Проблема:
+
+if (instance == null)
+
+Если два потока одновременно зайдут сюда, оба могут увидеть null и создать два объекта.
+
+Lazy thread-safe через synchronized
+public class Singleton {
+
+    private static Singleton instance;
+
+    private Singleton() {
+    }
+
+    public static synchronized Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+
+        return instance;
+    }
+}
+
+Теперь thread-safe, но есть минус:
+
+каждый вызов getInstance() синхронизирован
+
+Даже когда объект уже создан.
+
+Лучший lazy-вариант: static inner class
+public class Singleton {
+
+    private Singleton() {
+    }
+
+    private static class Holder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    public static Singleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+
+Это очень хороший вариант для собеседования.
+
+Почему?
+
+Singleton класс загрузился → объект ещё не создан
+getInstance() вызвали → загрузился Holder → создался INSTANCE
+
+То есть объект создаётся лениво, но при этом thread-safe.
+
+На собеседовании:
+
+Один из лучших вариантов lazy initialization — initialization-on-demand holder idiom. Внутренний static-класс Holder загружается только при первом вызове getInstance(), поэтому объект создаётся лениво. При этом инициализация static-поля потокобезопасна благодаря механизму загрузки классов JVM.
