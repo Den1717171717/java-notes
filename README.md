@@ -353,3 +353,82 @@ getInstance() вызвали → загрузился Holder → создалс�
 На собеседовании:
 
 Один из лучших вариантов lazy initialization — initialization-on-demand holder idiom. Внутренний static-класс Holder загружается только при первом вызове getInstance(), поэтому объект создаётся лениво. При этом инициализация static-поля потокобезопасна благодаря механизму загрузки классов JVM.
+
+
+
+
+
+
+
+
+
+
+Что такое .jar
+
+.jar — это обычный архив, похожий на .zip.
+
+Внутри обычно лежат:
+
+com/example/MyClass.class
+com/example/Service.class
+META-INF/MANIFEST.MF
+application.properties
+
+Главное: внутри лежат уже скомпилированные .class файлы, а не .java.
+
+Например:
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}
+
+После компиляции будет:
+
+Main.class
+
+А потом Maven может упаковать это в:
+
+my-app.jar
+Как JVM использует jar
+
+Когда ты запускаешь Java-приложение, JVM должна знать, где искать классы.
+
+Например:
+
+java -cp my-app.jar Main
+
+-cp означает classpath.
+
+То есть JVM говорит:
+
+Я буду искать классы внутри my-app.jar.
+
+Если jar исполняемый, можно так:
+
+java -jar my-app.jar
+
+Но для этого внутри MANIFEST.MF должен быть указан главный класс:
+
+Main-Class: com.example.Main
+
+Иначе JVM не поймёт, какой main() запускать.
+
+Нужно ли что-то писать для jar?
+
+Обычно вручную jar не пишут. Ты пишешь код и pom.xml, а Maven сам собирает jar.
+
+Например команда:
+
+mvn package
+
+После неё Maven создаст:
+
+target/my-app-1.0.jar
+
+Но если ты хочешь, чтобы jar запускался через:
+
+java -jar app.jar
+
+тогда нужно указать главный класс. Например через plugin:
